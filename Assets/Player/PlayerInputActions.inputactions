@@ -52,7 +52,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Portal",
+                    "name": "PortalShoot",
                     "type": "Button",
                     "id": "4c2f81c0-d104-41f4-a88c-968f385d0e0d",
                     "expectedControlType": "",
@@ -267,7 +267,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Portal",
+                    "action": "PortalShoot",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
