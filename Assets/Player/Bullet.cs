@@ -10,7 +10,7 @@ public class Bullet : MonoBehaviour
         Destroy(gameObject, lifetime);
     }
     void OnCollisionEnter(Collision other) {
-        destroy(gameObject); // Destruir la bala al colisionar con cualquier objeto
+        Destroy(gameObject); // Destruir la bala al colisionar con cualquier objeto
         
     }
 }

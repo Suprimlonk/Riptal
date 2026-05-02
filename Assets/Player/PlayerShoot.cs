@@ -1,8 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerShoot : MonoBehaviour
-{
+public class PlayerShoot : MonoBehaviour{
     [Header("Shooting Settings")]
     public float shootCooldown = 0.5f; // Tiempo entre disparos
     public float shootDamage = 10f; // Daño de cada disparo
@@ -12,51 +11,50 @@ public class PlayerShoot : MonoBehaviour
     public float bulletSpeed = 50f; // Velocidad de la bala
     public float bulletLifetime = 2f; // Tiempo de vida de la bala
     private bool canShoot = true;
-    void Start()
-    {
+    private bool isShootingPressed = false;
+    private Camera cam;
+    void Start(){
         // Validaciones básicas
+        cam=Camera.main;
         if (bullet == null) Debug.LogError("Bullet prefab is missing!");
         if (bulletSpawn == null) Debug.LogError("Bullet spawn point is missing!");
+        if (cam==null)Debug.LogError("Main Camera not found!");
     }
-    void OnShoot(InputValue value)
-    {
-        if (value.isPressed && canShoot)
-        {
+    void Update(){
+        // Dispara continuamente mientras se mantiene presionado
+        if (isShootingPressed && canShoot){
+            PerformShot();
             canShoot = false;
             Invoke(nameof(ResetShoot), shootCooldown);
-
-            // Realizar el disparo con Raycast para daño inmediato
-            RaycastHit hit;
-            if (Physics.Raycast(transform.position, transform.forward, out hit, shootRange))
-            {
-                // Aplicar daño si impacta un enemigo
-                HealthManager health = hit.collider.GetComponent<HealthManager>();
-                if (health != null)
-                {
-                    health.DamageRecived = shootDamage; // Daño inmediato por Raycast
-                }
-            }
-            // Instanciar bala siempre para VFX
-            GameObject bulletInstance = Instantiate(bullet, bulletSpawn.position, Quaternion.identity);
-            Rigidbody bulletRb = bulletInstance.GetComponent<Rigidbody>();
-            if (bulletRb != null)
-            {
-                bulletRb.linearVelocity = transform.forward * bulletSpeed;
-            }
-            Destroy(bulletInstance, bulletLifetime);
         }
     }
+    void OnShoot(InputValue button){
+        isShootingPressed = button.isPressed;
+    }
 
-    void OnPortalShoot(InputValue value)
-    {
-        if (value.isPressed)
-        {
+    void PerformShot(){
+        // Raycast desde la cámara para respetar rotación vertical
+        RaycastHit hit;
+        if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, shootRange)){
+            HealthManager health = hit.collider.GetComponent<HealthManager>();
+            if (health != null){
+                health.DamageRecived = shootDamage;
+            }
+        }
+        // Bala orientada hacia donde apunta la cámara
+        GameObject bulletInstance = Instantiate(bullet, bulletSpawn.position, cam.transform.rotation);
+        Rigidbody bulletRb = bulletInstance.GetComponent<Rigidbody>();
+        if (bulletRb != null){
+            bulletRb.linearVelocity = cam.transform.forward * bulletSpeed;
+        }
+        Destroy(bulletInstance, bulletLifetime);
+    }
+    void OnPortalShoot(InputValue button){
+        if (button.isPressed){
 
         }
     }
-
-    void ResetShoot()
-    {
+    void ResetShoot(){
         canShoot = true;
     }
 }   
