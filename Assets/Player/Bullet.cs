@@ -2,15 +2,12 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-    public float lifetime = 2f; // Tiempo de vida antes de destruirse
+    [HideInInspector]
+    public float damage = 0f; // Daño que inflige la bala, asignado por PlayerShoot
 
-    void Start()
+    void OnCollisionEnter(Collision other)
     {
-        // Destruir la bala después de su lifetime
-        Destroy(gameObject, lifetime);
-    }
-    void OnCollisionEnter(Collision other) {
-        Destroy(gameObject); // Destruir la bala al colisionar con cualquier objeto
-        
+        // Solo efecto visual al colisionar, el daño ya lo hizo el Raycast
+        Destroy(gameObject);
     }
 }

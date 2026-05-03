@@ -1,27 +1,26 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerShoot : MonoBehaviour{
+public class PlayerShoot : MonoBehaviour
+{
     [Header("Shooting Settings")]
-    public float shootCooldown = 0.5f; // Tiempo entre disparos
-    public float shootDamage = 10f; // Daño de cada disparo
-    public float shootRange = 100f; // Alcance del disparo
-    public GameObject bullet; // Prefab de la bala (para VFX)
-    public Transform bulletSpawn; // Punto de origen de la bala
-    public float bulletSpeed = 50f; // Velocidad de la bala
-    public float bulletLifetime = 2f; // Tiempo de vida de la bala
+    public float shootCooldown = 0.5f;
+    public float shootDamage = 10f;
+    public float shootRange = 100f;
+    public GameObject bullet;
+    public Transform bulletSpawn;
+    public float bulletSpeed = 50f;
+    public float bulletLifetime = 2f;
     private bool canShoot = true;
     private bool isShootingPressed = false;
     private Camera cam;
     void Start(){
-        // Validaciones básicas
-        cam=Camera.main;
+        cam = Camera.main;
         if (bullet == null) Debug.LogError("Bullet prefab is missing!");
         if (bulletSpawn == null) Debug.LogError("Bullet spawn point is missing!");
-        if (cam==null)Debug.LogError("Main Camera not found!");
+        if (cam == null) Debug.LogError("Main Camera not found!");
     }
     void Update(){
-        // Dispara continuamente mientras se mantiene presionado
         if (isShootingPressed && canShoot){
             PerformShot();
             canShoot = false;
@@ -31,17 +30,25 @@ public class PlayerShoot : MonoBehaviour{
     void OnShoot(InputValue button){
         isShootingPressed = button.isPressed;
     }
-
     void PerformShot(){
-        // Raycast desde la cámara para respetar rotación vertical
+        // Debug visual para ver el rayo en Scene view
+        Debug.DrawRay(cam.transform.position, cam.transform.forward * shootRange, Color.red, 1f);
+
         RaycastHit hit;
-        if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, shootRange)){
-            HealthManager health = hit.collider.GetComponent<HealthManager>();
-            if (health != null){
-                health.DamageRecived = shootDamage;
+        // Usa shootMask para ignorar el collider del propio jugador
+        if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, shootRange, ~LayerMask.GetMask("Player"))){
+            Debug.Log($"Raycast golpeó: {hit.collider.gameObject.name} con tag: {hit.collider.tag}");
+            EnemyHealthManager enemyHealth = hit.collider.GetComponent<EnemyHealthManager>();
+            if (enemyHealth != null)
+            {
+                enemyHealth.TakeDamage(shootDamage);
+                Debug.Log($"Daño aplicado: {shootDamage}");
             }
         }
-        // Bala orientada hacia donde apunta la cámara
+        else{
+            Debug.Log("Raycast no golpeó nada");
+        }
+        // Bala visual
         GameObject bulletInstance = Instantiate(bullet, bulletSpawn.position, cam.transform.rotation);
         Rigidbody bulletRb = bulletInstance.GetComponent<Rigidbody>();
         if (bulletRb != null){
@@ -49,12 +56,6 @@ public class PlayerShoot : MonoBehaviour{
         }
         Destroy(bulletInstance, bulletLifetime);
     }
-    void OnPortalShoot(InputValue button){
-        if (button.isPressed){
-
-        }
-    }
-    void ResetShoot(){
-        canShoot = true;
-    }
-}   
+    void OnPortalShoot(InputValue button) { }
+    void ResetShoot() => canShoot = true;
+}
